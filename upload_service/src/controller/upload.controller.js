@@ -1,15 +1,14 @@
 import AWS from 'aws-sdk';
-import fs from 'fs'
+
 
 const uploadFileToS3 = async(req, res) => {
+   console.log('Upload req received');
   
- const filePath = "C:/Users/nihal/OneDrive/Pictures/IMG_20201222_191746__01_compress22(yIBtyGNWv1Y) 77kb.jpg";
-
-   // Check if the file exists
-   if (!fs.existsSync(filePath)) {
-       console.log('File does not exist: ', filePath);
-       return;
-   }    
+   if (!req.file) {
+       console.log('No file received');
+       return res.status(400).send('No file received');
+   }
+   const file = req.file;
 
 
    AWS.config.update({
@@ -21,15 +20,12 @@ const uploadFileToS3 = async(req, res) => {
 
    const params = {
        Bucket: process.env.AWS_BUCKET,
-       Key: 'deals.jpg',
-       Body: fs.createReadStream(filePath)
+       Key: file.originalname,
+       Body: file.buffer
    };
 
 
    const s3 = new AWS.S3();
-
-
-   // Upload the file to S3
    s3.upload(params, (err, data) => {
        if (err) {
            console.log('Error uploading file:', err);
@@ -38,8 +34,7 @@ const uploadFileToS3 = async(req, res) => {
            console.log('File uploaded successfully. File location:', data.Location);
            res.status(200).send('File uploaded successfully');
        }
-   });
-}
+   });}
 
 
 export default uploadFileToS3;
