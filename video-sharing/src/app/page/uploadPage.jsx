@@ -1,4 +1,4 @@
-import UploadForm from "../components/uploadForm";
+import UploadForm from "../upload/page";
 
 const UploadPage = () => {
   return (

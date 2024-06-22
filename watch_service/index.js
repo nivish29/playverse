@@ -4,7 +4,7 @@
 import express from "express";
 import dotenv from "dotenv"
 import cors from "cors"
-import watchRouter from "./routes/watch.route.js"
+import watchRouter from "./src/routes/watch.route.js"
 
 dotenv.config();
 
