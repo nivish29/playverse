@@ -1,78 +1,135 @@
-// multipartupload.controller.js
+import AWS from "aws-sdk";
+import { addVideoDetailsToDB } from "../db/db.js";
 
-import AWS from 'aws-sdk';
-import fs from 'fs';
+// Initialize upload
+export const initializeUpload = async (req, res) => {
+  try {
+    console.log("Initialising Upload");
+    const { filename } = req.body;
+    console.log(filename);
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: "ap-south-1",
+    });
+    const bucketName = process.env.AWS_BUCKET;
 
-const multipartUploadFileToS3 = async (req, res) => {
-   console.log('Upload req received');
+    const createParams = {
+      Bucket: bucketName,
+      Key: filename,
+      ContentType: "video/mp4",
+    };
 
-   const filePath = "C:/Users/nihal/Videos/Captures/How to Record the Screen on Windows 11 in 2022 (5 Methods) _ Beebom - Google Chrome 2023-02-12 22-54-03.mp4";
+    const multipartParams = await s3
+      .createMultipartUpload(createParams)
+      .promise();
+    console.log("multipartparams---- ", multipartParams);
+    const uploadId = multipartParams.UploadId;
 
-   // Check if the file exists
-   if (!fs.existsSync(filePath)) {
-       console.log('File does not exist: ', filePath);
-       return res.status(400).send('File does not exist');
-   }
-
-   AWS.config.update({
-       region: 'ap-south-1',
-       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-   });
-
-   const s3 = new AWS.S3();
-   const uploadParams = {
-       Bucket: process.env.AWS_BUCKET,
-       Key: "trial-key",
-       ACL: 'public-read',
-       ContentType: 'video/mp4'
-   };
-
-   try {
-       console.log('Creating MultiPart Upload');
-       const multipartParams = await s3.createMultipartUpload(uploadParams).promise();
-       const fileSize = fs.statSync(filePath).size;
-       const chunkSize = 5 * 1024 * 1024; // 5 MB
-       const numParts = Math.ceil(fileSize / chunkSize);
-
-       const uploadedETags = []; // Store ETags for uploaded parts
-
-       for (let i = 0; i < numParts; i++) {
-           const start = i * chunkSize;
-           const end = Math.min(start + chunkSize, fileSize);
-
-           const partParams = {
-               Bucket: uploadParams.Bucket,
-               Key: uploadParams.Key,
-               UploadId: multipartParams.UploadId,
-               PartNumber: i + 1,
-               Body: fs.createReadStream(filePath, { start, end }),
-               ContentLength: end - start
-           };
-
-           const data = await s3.uploadPart(partParams).promise();
-           console.log(`Uploaded part ${i + 1}: ${data.ETag}`);
-
-           uploadedETags.push({ PartNumber: i + 1, ETag: data.ETag });
-       }
-
-       const completeParams = {
-           Bucket: uploadParams.Bucket,
-           Key: uploadParams.Key,
-           UploadId: multipartParams.UploadId,
-           MultipartUpload: { Parts: uploadedETags }
-       };
-
-       console.log('Completing MultiPart Upload');
-       const completeRes = await s3.completeMultipartUpload(completeParams).promise();
-       console.log(completeRes);
-
-       console.log('File uploaded successfully');
-       res.status(200).send('File uploaded successfully');
-   } catch (err) {
-       console.log('Error uploading file:', err);
-       res.status(500).send('File could not be uploaded');
-   }
+    res.status(200).json({ uploadId });
+  } catch (err) {
+    console.error("Error initializing upload:", err);
+    res.status(500).send("Upload initialization failed");
+  }
 };
 
-export default multipartUploadFileToS3;
+// Upload chunk
+export const uploadChunk = async (req, res) => {
+  try {
+    console.log("Uploading Chunk");
+    const { filename, chunkIndex, uploadId } = req.body;
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: "ap-south-1",
+    });
+    const bucketName = process.env.AWS_BUCKET;
+
+    const partParams = {
+      Bucket: bucketName,
+      Key: filename,
+      UploadId: uploadId,
+      PartNumber: parseInt(chunkIndex) + 1,
+      Body: req.file.buffer,
+    };
+
+    const data = await s3.uploadPart(partParams).promise();
+    console.log("data------- ", data);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error uploading chunk:", err);
+    res.status(500).send("Chunk could not be uploaded");
+  }
+};
+
+// Complete upload
+export const completeUpload = async (req, res) => {
+  try {
+    console.log("Completing Upload");
+    const { filename, totalChunks, uploadId, title, description, author } =
+      req.body;
+    const uploadedParts = [];
+
+    // Build uploadedParts array from request body
+    for (let i = 0; i < totalChunks; i++) {
+      uploadedParts.push({ PartNumber: i + 1, ETag: req.body[`part${i + 1}`] });
+    }
+
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: "ap-south-1",
+    });
+    const bucketName = process.env.AWS_BUCKET;
+
+    const completeParams = {
+      Bucket: bucketName,
+      Key: filename,
+      UploadId: uploadId,
+    };
+
+    // Listing parts using promise
+    const data = await s3.listParts(completeParams).promise();
+
+    const parts = data.Parts.map((part) => ({
+      ETag: part.ETag,
+      PartNumber: part.PartNumber,
+    }));
+
+    completeParams.MultipartUpload = {
+      Parts: parts,
+    };
+
+    // Completing multipart upload using promise
+    const uploadResult = await s3
+      .completeMultipartUpload(completeParams)
+      .promise();
+
+    console.log("data----- ", uploadResult);
+    console.log("Updating data in DB");
+    const url = uploadResult.Location;
+    console.log("Video uploaded at ", url);
+    await addVideoDetailsToDB(title, description, author, url);
+    return res.status(200).json({ message: "Uploaded successfully!!!" });
+  } catch (error) {
+    console.log("Error completing upload :", error);
+    return res.status(500).send("Upload completion failed");
+  }
+};
+
+export const uploadToDb = async (req, res) => {
+  console.log("Adding details to DB");
+  try {
+    const videoDetails = req.body;
+    await addVideoDetailsToDB(
+      videoDetails.title,
+      videoDetails.description,
+      videoDetails.author,
+      videoDetails.url
+    );
+    return res.status(200).send("success");
+  } catch (error) {
+    console.log("Error in adding to DB ", error);
+    return res.status(400).send(error);
+  }
+};
