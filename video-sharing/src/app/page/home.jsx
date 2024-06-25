@@ -13,6 +13,7 @@ const YouTubeHome = () => {
       try {
         const res = await axios.get("http://localhost:8082/watch/home");
         console.log(res);
+        console.log('nihal');
         setVideos(res.data);
         setLoading(false); // Set loading to false when videos are fetched
       } catch (error) {
