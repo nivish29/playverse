@@ -5,6 +5,7 @@ import UploadPage from "./page/uploadPage";
 import YouTubeHome from "./page/home";
 import AuthPage from "./page/auth";
 import NavBar from "./components/navbar";
+import VideoPlayer from "./page/videoPlayer";
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 
 const Room = () => {
@@ -23,6 +24,7 @@ const Room = () => {
     <div>
         <NavBar/>
         <YouTubeHome />
+        {/* <VideoPlayer/> */}
     </div>
     // <AuthPage />
   );
