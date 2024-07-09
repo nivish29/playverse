@@ -1,6 +1,7 @@
 import express from "express";
 import uploadRouter from "./src/routes/upload.route.js";
 import kafkaPublisherRouter from "./src/routes/kafkapublisher.route.js";
+import findTextRouter from "./src/routes/findText.route.js";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -16,7 +17,8 @@ app.use(
 );
 app.use(express.json());
 app.use("/upload", uploadRouter);
-app.use('/publish', kafkaPublisherRouter);
+app.use("/publish", kafkaPublisherRouter);
+app.use('/timeStamp',findTextRouter)
 
 app.get("/", (req, res) => {
   res.send("HHLD YouTube");
