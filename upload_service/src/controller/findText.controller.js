@@ -25,7 +25,6 @@ const headers = {
 export const convertToMp3 = async (req, res) => {
   const inputPath = "video.mp4";
   const outputPath = "audio.mp3";
-  const GOOGLE_APPLICATION_CREDENTIALS = "testing";
   // Check if the input file exists
   if (!fs.existsSync(inputPath)) {
     return res.status(404).send("Video file not found");
@@ -54,12 +53,26 @@ export const convertToMp3 = async (req, res) => {
 const run = async () => {
   const path = "audio/audio.mp3";
   const audioData = await fs.readFile(path);
-  // const uploadResponse = await axios.post(`https://api.assemblyai.com/v2/upload`, audioData, {
-  //   headers,
-  // });
-  const uploadUrl =
-    "https://cdn.assemblyai.com/upload/b40c84b2-ef1d-4179-be94-df3e1cf98ced";
-  // const uploadUrl = uploadResponse.data.upload_url;
+  const uploadResponse = await axios.post(`https://api.assemblyai.com/v2/upload`, audioData, {
+    headers,
+  });
+  fs.unlink('audio/audio.mp3',(err)=>{
+    if(err){
+      console.log(err);
+      return;
+    }
+    console.log(`File has been successfully removed.`);
+  })
+  fs.unlink('audio.mp3',(err)=>{
+    if(err){
+      console.log(err);
+      return;
+    }
+    console.log(`File has been successfully removed.`);
+  })
+  // const uploadUrl =
+  //   "https://cdn.assemblyai.com/upload/b40c84b2-ef1d-4179-be94-df3e1cf98ced";
+  const uploadUrl = uploadResponse.data.upload_url;
   console.log(uploadUrl);
   const config = {
     audio_url: uploadUrl, // You can also use a URL to an audio or video file on the web
