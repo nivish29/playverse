@@ -1,13 +1,27 @@
 import AWS from "aws-sdk";
 import { addVideoDetailsToDB } from "../db/db.js";
+import { Worker } from "worker_threads";
+import multer from "multer";
 import { pushVideoForEncodingToKafka } from "./kafkapublisher.controller.js";
 
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "./uploads");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   },
+// });
+
+// const upload = multer({ storage: storage });
 // Initialize upload
 export const initializeUpload = async (req, res) => {
   try {
     console.log("Initialising Upload");
     const { filename } = req.body;
     console.log(filename);
+    // upload.single("file");
+
     const s3 = new AWS.S3({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -26,6 +40,29 @@ export const initializeUpload = async (req, res) => {
       .promise();
     console.log("multipartparams---- ", multipartParams);
     const uploadId = multipartParams.UploadId;
+
+    // // Trigger the worker thread for findText.controller logic
+    const worker = new Worker("./src/controller/findTextWorker.js", {
+      workerData: { videoPath: 'public/video.mp4' }, // specify the actual video path
+    });
+
+    worker.on("message", (message) => {
+      if (message.success) {
+        console.log("Worker completed successfully");
+      } else {
+        console.error("Worker failed:", message.error);
+      }
+    });
+
+    worker.on("error", (error) => {
+      console.error("Worker error:", error);
+    });
+
+    worker.on("exit", (code) => {
+      if (code !== 0) {
+        console.error(`Worker stopped with exit code ${code}`);
+      }
+    });
 
     res.status(200).json({ uploadId });
   } catch (err) {
@@ -112,7 +149,7 @@ export const completeUpload = async (req, res) => {
     console.log("Video uploaded at ", url);
     await addVideoDetailsToDB(title, description, author, url);
     console.log(`the key is:${uploadResult.Key}`);
-    pushVideoForEncodingToKafka(title, uploadResult.Location,uploadResult.Key);
+    pushVideoForEncodingToKafka(title, uploadResult.Location, uploadResult.Key);
     return res.status(200).json({ message: "Uploaded successfully!!!" });
   } catch (error) {
     console.log("Error completing upload :", error);

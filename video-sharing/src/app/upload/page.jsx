@@ -20,8 +20,25 @@ const UploadForm = () => {
         alert("Title and Author are required fields.");
         return;
       }
+
       const formData = new FormData();
+
+      formData.append("filename", selectedFile);
+      console.log("nihal");
+
+      const tempResponse = await axios.post(
+        "http://localhost:8080/temp",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Response from /temp API:", tempResponse);
+      formData.delete("filename");
       formData.append("filename", selectedFile.name);
+      console.log("nihal");
       const initializeRes = await axios.post(
         "http://localhost:8080/upload/initialize",
         formData,
