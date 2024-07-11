@@ -42,27 +42,34 @@ export const initializeUpload = async (req, res) => {
     const uploadId = multipartParams.UploadId;
 
     // // Trigger the worker thread for findText.controller logic
-    const worker = new Worker("./src/controller/findTextWorker.js", {
-      workerData: { videoPath: 'public/video.mp4' }, // specify the actual video path
-    });
+    const workerPromise=new Promise((resolve,reject)=>{
+      const worker = new Worker("./src/controller/findTextWorker.js", {
+        workerData: { videoPath: 'public/video.mp4' }, // specify the actual video path
+      });
 
-    worker.on("message", (message) => {
-      if (message.success) {
-        console.log("Worker completed successfully");
-      } else {
-        console.error("Worker failed:", message.error);
-      }
-    });
-
-    worker.on("error", (error) => {
-      console.error("Worker error:", error);
-    });
-
-    worker.on("exit", (code) => {
-      if (code !== 0) {
-        console.error(`Worker stopped with exit code ${code}`);
-      }
-    });
+      worker.on("message", (message) => {
+        if (message.success) {
+          console.log("Worker completed successfully");
+          console.log("Worker completed successfully with data:", message.data);
+          resolve(message.data);
+        } else {
+          console.error("Worker failed:", message.error);
+          reject(message.error);
+        }
+      });
+      worker.on("error", (error) => {
+        console.error("Worker error:", error);
+        reject(error);
+      });
+      worker.on("exit", (code) => {
+        if (code !== 0) {
+          console.error(`Worker stopped with exit code ${code}`);
+          reject(new Error(`Worker stopped with exit code ${code}`));
+        }
+      });
+    })
+    console.log(`worker promise from initialization ${ JSON.stringify(workerPromise)}`);
+    global.workerPromise = workerPromise;
 
     res.status(200).json({ uploadId });
   } catch (err) {
@@ -147,9 +154,20 @@ export const completeUpload = async (req, res) => {
     console.log("Updating data in DB");
     const url = uploadResult.Location;
     console.log("Video uploaded at ", url);
-    await addVideoDetailsToDB(title, description, author, url);
+    const workerResults = await global.workerPromise;
+    console.log(`worker result are: ${workerResults}, ${typeof workerResults}`);
+    // const timeStampList = Object.values(workerResults).map(ts => `${ts}`);
+    // console.log(`worker time stamp list are: ${timeStampList}, ${typeof timeStampList}`);
+    if (workerResults && workerResults.length > 0) {
+      const { text, timeStamp } = workerResults;
+      // await addVideoDetailsToDB(title, description, author, url,timeStamp);
+      console.log(`Video details and worker results saved to DB with timeStamp : ${timeStamp}`);
+    } else {
+      console.log("Worker results are not available or invalid. Skipping DB update.");
+    }
+    // await addVideoDetailsToDB(title, description, author, url);
     console.log(`the key is:${uploadResult.Key}`);
-    pushVideoForEncodingToKafka(title, uploadResult.Location, uploadResult.Key);
+    // pushVideoForEncodingToKafka(title, uploadResult.Location, uploadResult.Key);
     return res.status(200).json({ message: "Uploaded successfully!!!" });
   } catch (error) {
     console.log("Error completing upload :", error);
@@ -165,7 +183,8 @@ export const uploadToDb = async (req, res) => {
       videoDetails.title,
       videoDetails.description,
       videoDetails.author,
-      videoDetails.url
+      videoDetails.url,
+      videoDetails.timeStamp
     );
     return res.status(200).send("success");
   } catch (error) {

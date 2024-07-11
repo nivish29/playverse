@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import dynamic from "next/dynamic";
+// import { cookies } from "next/headers";
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 
 // {
@@ -14,6 +15,7 @@ const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 // },
 
 const YouTubeHome = () => {
+  // cookies()
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -37,7 +39,7 @@ const YouTubeHome = () => {
     //     title: "testing",
     //     author: "author",
     //     description: "desc",
-    //     url: "https://playverse-v2.s3.ap-south-1.amazonaws.com/output/test_mp4_master.m3u8",
+    //     url: "https://playverse-v2.s3.ap-south-1.amazonaws.com/test2.mp4",
     //   }
     // ];
   }, []);
@@ -51,6 +53,7 @@ const YouTubeHome = () => {
 
   const handleVideoClick = (id) => {
     router.push(`page/${id}`);
+    // router.push(`page/7`);
   };
   return (
     <div>
@@ -64,10 +67,11 @@ const YouTubeHome = () => {
             <div
               key={video.id}
               className="border rounded-md overflow-hidden cursor-pointer"
-              onClick={() => handleVideoClick(video.id)}
+              // onClick={() => handleVideoClick(video.id)}
             >
               <div>
                 <ReactPlayer
+                  onPlay={() => handleVideoClick(video.id)}
                   url={video.url}
                   width="360px"
                   height="180px"

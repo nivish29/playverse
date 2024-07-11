@@ -19,5 +19,5 @@ model VideoData {
   description String?
   author      String
   url         String
-  timeStamp   String[] @default(["0:00"])
+  timeStamp   String[] @default(["00:00"])
 }
