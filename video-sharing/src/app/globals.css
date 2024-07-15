@@ -31,3 +31,19 @@
     text-wrap: balance;
   }
 }
+@keyframes gradientRotate {
+  0% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 200% 100%;
+  }
+}
+
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientRotate 2s ease-in-out infinite;
+}
+
+

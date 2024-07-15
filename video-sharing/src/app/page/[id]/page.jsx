@@ -35,9 +35,13 @@ const VideoPlayerPage = () => {
     // Check if the current timestamp matches any timestamp in the timeStamp array
     if (timeStamp.includes(currentTimestamp)) {
       setSubscribeAnimation(true);
-    } else {
-      setSubscribeAnimation(false);
-    }
+      setTimeout(() => {
+        setSubscribeAnimation(false);
+      }, 2000); 
+    } 
+    // else {
+    //   setSubscribeAnimation(false);
+    // }
   };
 
   // Function to format seconds to 'mm:ss' format
@@ -56,29 +60,27 @@ const VideoPlayerPage = () => {
   }
 
   return (
-    <div className="container ml-10 p-10">
-      <div className="mb-4">
+    <div className="container pl-3 pt-5 ">
+      <div className="relative pb-[35.25%] w-[80%] h-0 mb-4">
         <ReactPlayer
           url={video.url} // Use the video URL from the fetched data
-          // url='https://playverse-v2.s3.ap-south-1.amazonaws.com/test2.mp4' // Use the video URL from the fetched data
-          width="75%"
-          height="600px"
+          className="absolute top-0 left-0 w-full h-full"
+          width="70%"
+          height="100%"
           controls={true}
-          // playing={true}
           onProgress={handleProgress}
           onPause={() => setSubscribeAnimation(false)}
         />
       </div>
-      <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
-      <p className="text-gray-700 mb-4">Author - {video.author}</p>
-      <p className="text-gray-700 mb-4">{video.description}</p>
-      <button
-        className={`${
-          subscribeAnimation ? "bg-blue-500" : "bg-red-500"
-        } text-white px-4 py-2 rounded`}
-      >
+      <h1 className="text-xl font-bold ">{video.title}</h1>
+      <p className="text-gray-700 text-sm font-bold"> {video.author}</p>
+      <p className="text-gray-700 mb-4 font-normal text-sm">{video.description}</p>
+
+     <button className={`m-4 p-1 rounded-full bg-gradient-to-r ${subscribeAnimation ? " transition-all duration-300 animate-gradient from-blue-600   to-red-500 " : ""}`}>
+      <span className="block text-white px-4 py-2 font-semibold rounded-full bg-black ">
         Subscribe
-      </button>
+      </span>
+    </button>
     </div>
   );
 };

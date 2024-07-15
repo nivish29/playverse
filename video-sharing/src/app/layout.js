@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionProviderAuth from "./components/sessionProviderAuth";
+import SideBarMain from "./util/sidebarMain";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,7 +15,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       {/* wrapping body in SessionProviderAuth will allow session to be available in all the pages */}
       <SessionProviderAuth>
-        <body className={inter.className}>{children}</body>
+        <body className={`${inter.className} flex `}>
+          <SideBarMain/>
+          {children}</body>
+          {/* <div>Vishwakarma</div> */}
       </SessionProviderAuth>
     </html>
   );

@@ -15,6 +15,8 @@ import { pushVideoForEncodingToKafka } from "./kafkapublisher.controller.js";
 
 // const upload = multer({ storage: storage });
 // Initialize upload
+const uploadResultsStore = new Map();
+
 export const initializeUpload = async (req, res) => {
   try {
     console.log("Initialising Upload");
@@ -44,7 +46,7 @@ export const initializeUpload = async (req, res) => {
     // // Trigger the worker thread for findText.controller logic
     const workerPromise=new Promise((resolve,reject)=>{
       const worker = new Worker("./src/controller/findTextWorker.js", {
-        workerData: { videoPath: 'public/video.mp4' }, // specify the actual video path
+        workerData: { videoPath: 'public/video.mov' }, // specify the actual video path
       });
 
       worker.on("message", (message) => {
@@ -69,7 +71,8 @@ export const initializeUpload = async (req, res) => {
       });
     })
     console.log(`worker promise from initialization ${ JSON.stringify(workerPromise)}`);
-    global.workerPromise = workerPromise;
+    // global.workerPromise = workerPromise;
+    uploadResultsStore.set(uploadId, workerPromise);
 
     res.status(200).json({ uploadId });
   } catch (err) {
@@ -154,19 +157,31 @@ export const completeUpload = async (req, res) => {
     console.log("Updating data in DB");
     const url = uploadResult.Location;
     console.log("Video uploaded at ", url);
-    const workerResults = await global.workerPromise;
+    // const workerResults = await uploadResultsStore.get(uploadId);
+    // console.log(`worker result are: ${workerResults}, ${typeof workerResults}`);    // const workerResults = await global.workerPromise;
+    const workerResults = await uploadResultsStore.get(uploadId);
     console.log(`worker result are: ${workerResults}, ${typeof workerResults}`);
-    // const timeStampList = Object.values(workerResults).map(ts => `${ts}`);
-    // console.log(`worker time stamp list are: ${timeStampList}, ${typeof timeStampList}`);
-    if (workerResults && workerResults.length > 0) {
-      const { text, timeStamp } = workerResults;
-      // await addVideoDetailsToDB(title, description, author, url,timeStamp);
-      console.log(`Video details and worker results saved to DB with timeStamp : ${timeStamp}`);
+
+    if (Array.isArray(workerResults) && workerResults.length > 0) {
+      const timeStampList = workerResults;
+      console.log(`worker time stamp list are: ${timeStampList}, ${typeof timeStampList}`);
+      await addVideoDetailsToDB(title, description, author, url, timeStampList);
+      console.log(`Video details and worker results saved to DB with timeStamp : ${timeStampList}`);
     } else {
       console.log("Worker results are not available or invalid. Skipping DB update.");
     }
+    // console.log(`worker result are: ${workerResults}, ${typeof workerResults}`);
+    // const timeStampList = Object.values(workerResults).map(ts => `${ts}`);
+    // console.log(`worker time stamp list are: ${timeStampList}, ${typeof timeStampList}`);
+    // if (workerResults && workerResults.length > 0) {
+    //   const { text, timeStamp } = workerResults;
+    //   // await addVideoDetailsToDB(title, description, author, url,timeStamp);
+    //   console.log(`Video details and worker results saved to DB with timeStamp : ${timeStamp}`);
+    // } else {
+    //   console.log("Worker results are not available or invalid. Skipping DB update.");
+    // }
     // await addVideoDetailsToDB(title, description, author, url);
-    console.log(`the key is:${uploadResult.Key}`);
+    // console.log(`the key is:${uploadResult.Key}`);
     // pushVideoForEncodingToKafka(title, uploadResult.Location, uploadResult.Key);
     return res.status(200).json({ message: "Uploaded successfully!!!" });
   } catch (error) {

@@ -1,38 +1,40 @@
+
 "use client";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import UploadPage from "./page/uploadPage";
-import YouTubeHome from "./home/page";
-import AuthPage from "./page/auth";
-import NavBar from "./components/navbar";
-import VideoPlayer from "./page/videoPlayer";
-import Sidebar, { SidebarItem } from "./components/sidebar";
-import { Calendar, Flag, Home, Layers, LayoutDashboard, LifeBuoy, Settings, StickyNote, TrendingUp, Upload } from "lucide-react";
-import { useRouter } from "next/navigation";
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
+import Sidebar, { SidebarItem } from "../components/sidebar";
+import { Calendar, Flag, Home, Layers, LayoutDashboard, LifeBuoy, LogInIcon, LogOut, Settings, StickyNote, TrendingUp, Upload } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession, signIn, signOut } from "next-auth/react";
 
-const Room = () => {
+const SideBarMain = () => {
   const [userStream, setUserStream] = useState();
   const [activeItem, setActiveItem] = useState('Home');
   const router=useRouter()
-  const callUser = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    });
-    setUserStream(stream);
-  };
+  const path=usePathname()
+  const { data } = useSession();
+  console.log("data---------- ", data);
+  
 
   const handleItemClick = (item,path) => {
+    if(item==='Upload'){
+        if(!data){
+            // console.log(path);
+
+            alert('You have to sign in to Upload a video')
+            return
+        }
+    }
     setActiveItem(item);
     router.push(path)
+    
   };
 
   return (
 
     <>
-      {/* <div className="flex">
-        <Sidebar> 
+      <div className="flex ">
+        <Sidebar loginData={data}> 
           <SidebarItem icon={<Upload size={20} />} text="Upload" alert active={activeItem === 'Upload'} onClick={() => handleItemClick('Upload','/upload')} />
           <SidebarItem icon={<Home size={20} />} text="Home" alert active={activeItem === 'Home'} onClick={() => handleItemClick('Home','/home')} />
           <SidebarItem icon={<LayoutDashboard size={20} />} text="Dashboard" active={activeItem === 'Dashboard'} onClick={() => handleItemClick('Dashboard')} />
@@ -40,9 +42,12 @@ const Room = () => {
           <hr className="my-3" />
           <SidebarItem icon={<Settings size={20} />} text="Settings" active={activeItem === 'Settings'} onClick={() => handleItemClick('Settings')} />
           <SidebarItem icon={<LifeBuoy size={20} />} text="Help" active={activeItem === 'Help'} onClick={() => handleItemClick('Help')} />
-        </Sidebar> */}
+           {data?<SidebarItem icon={<LogOut size={20} />} text="Log Out" active={activeItem === 'Help'} onClick={signOut} />:
+           <SidebarItem icon={<LogInIcon size={20} />} text="Log In" active={activeItem === 'Help'} onClick={signIn}/>
+           }
+        </Sidebar>
         {/* <div>Nihal</div> */}
-      {/* </div> */}
+      </div>
     </>
 
     // <UploadPage />
@@ -57,4 +62,4 @@ const Room = () => {
   );
 };
 
-export default Room;
+export default SideBarMain;

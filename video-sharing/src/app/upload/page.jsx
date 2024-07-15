@@ -97,7 +97,8 @@ const UploadForm = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-lg p-10">
+    <div className="relative mx-auto w-[70%] justify-start left-0 p-10">
+      <div className="text-[50px] tracking-wider font-extrabold pb-6">Upload... </div>
       <form encType="multipart/form-data">
         <div className="mb-4">
           <input
@@ -107,7 +108,7 @@ const UploadForm = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="px-3 py-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+            className="px-3 py-2 w-full  rounded-md bg-gray-100 focus:outline-none focus:border-blue-500"
           />
         </div>
         <div className="mb-4">
@@ -117,7 +118,7 @@ const UploadForm = () => {
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="px-3 py-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                    className="px-3 py-2 w-full  rounded-md bg-gray-100 focus:outline-none focus:border-blue-500"
           />
         </div>
         <div className="mb-4">
@@ -128,7 +129,7 @@ const UploadForm = () => {
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             required
-            className="px-3 py-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                    className="px-3 py-2 w-full  rounded-md bg-gray-100 focus:outline-none focus:border-blue-500"
           />
         </div>
         <div className="mb-4">
@@ -136,13 +137,13 @@ const UploadForm = () => {
             type="file"
             name="file"
             onChange={handleFileChange}
-            className="px-3 py-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                    className="px-3 py-2 w-full  rounded-md bg-gray-100 focus:outline-none focus:border-blue-500"
           />
         </div>
         <button
           type="button"
           onClick={handleUpload}
-          className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+          className="text-white bg-gradient-to-br hover:scale-105 transition-all duration-150 bg-black shadow-lg shadow-black hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-10 py-2.5 text-center"
         >
           Upload
         </button>

@@ -40,12 +40,12 @@ const run = async () => {
     await fs.unlink(videoPath);
 
     const audioData = await fs.readFile(audioPath);
-    // const uploadResponse = await axios.post(`https://api.assemblyai.com/v2/upload`, audioData, { headers });
+    const uploadResponse = await axios.post(`https://api.assemblyai.com/v2/upload`, audioData, { headers });
 
     await fs.unlink(audioPath);
 
-    // const uploadUrl = uploadResponse.data.upload_url;
-    const uploadUrl="https://cdn.assemblyai.com/upload/0c66d309-9b4e-49ee-b317-60f66f1e2d3e";
+    const uploadUrl = uploadResponse.data.upload_url;
+    // const uploadUrl="https://cdn.assemblyai.com/upload/94d679d6-594d-42c5-a409-1e0182ce6035";
     console.log(uploadUrl);
     const config = {
       audio_url: uploadUrl,
@@ -54,7 +54,7 @@ const run = async () => {
     const transcript = await client.transcripts.transcribe(config);
     console.log(transcript);
     
-    const timeStamp = findTimestamp("any", transcript.words);
+    const timeStamp = findTimestamp("subscribe", transcript.words);
     console.log(timeStamp);
 
     parentPort.postMessage({ success: true, data: timeStamp });

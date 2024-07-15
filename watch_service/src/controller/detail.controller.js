@@ -2,9 +2,9 @@
 
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 
 const getVideoById = async (req, res) => {
+  const prisma = new PrismaClient();
   const { id } = req.params; //
   try {
     console.log(req.params.id);
