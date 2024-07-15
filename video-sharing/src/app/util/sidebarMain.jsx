@@ -33,7 +33,7 @@ const SideBarMain = () => {
   return (
 
     <>
-      <div className="flex ">
+      <div className="flex z-10 fixed">
         <Sidebar loginData={data}> 
           <SidebarItem icon={<Upload size={20} />} text="Upload" alert active={activeItem === 'Upload'} onClick={() => handleItemClick('Upload','/upload')} />
           <SidebarItem icon={<Home size={20} />} text="Home" alert active={activeItem === 'Home'} onClick={() => handleItemClick('Home','/home')} />

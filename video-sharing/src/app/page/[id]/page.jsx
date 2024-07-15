@@ -60,7 +60,7 @@ const VideoPlayerPage = () => {
   }
 
   return (
-    <div className="container pl-3 pt-5 ">
+    <div className="container ml-32 pt-4 ">
       <div className="relative pb-[35.25%] w-[80%] h-0 mb-4">
         <ReactPlayer
           url={video.url} // Use the video URL from the fetched data
@@ -76,7 +76,7 @@ const VideoPlayerPage = () => {
       <p className="text-gray-700 text-sm font-bold"> {video.author}</p>
       <p className="text-gray-700 mb-4 font-normal text-sm">{video.description}</p>
 
-     <button className={`m-4 p-1 rounded-full bg-gradient-to-r ${subscribeAnimation ? " transition-all duration-300 animate-gradient from-blue-600   to-red-500 " : ""}`}>
+     <button className={`p-1 rounded-full bg-gradient-to-r ${subscribeAnimation ? " transition-all duration-300 animate-gradient from-blue-600   to-red-500 " : ""}`}>
       <span className="block text-white px-4 py-2 font-semibold rounded-full bg-black ">
         Subscribe
       </span>

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 const SidebarContext = createContext();
 
 const Sidebar = ({ children ,loginData}) => {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const cardsRef = useRef(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const [mouseOnCard, setMouseOnCard] = useState(false);

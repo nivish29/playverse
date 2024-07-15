@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import dynamic from "next/dynamic";
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
+import Box from "@mui/material/Box";
+import LinearProgress from "@mui/material/LinearProgress";
+
 
 const YouTubeHome = () => {
   const [videos, setVideos] = useState([
@@ -21,7 +24,7 @@ const YouTubeHome = () => {
   const [page,setPage]=useState(1);
   useEffect(() => {
     const getVideos = async () => {
-      // setLoading(true);
+      setLoading(true);
       try {
         const res = await axios.get(`http://localhost:8082/watch/home?limit=10&page=${page}`);
         // setVideos(res.data);
@@ -31,7 +34,7 @@ const YouTubeHome = () => {
         setLoading(false);
       } catch (error) {
         console.log("Error in fetching videos: ", error);
-        // setLoading(false);
+        setLoading(false);
       }
     };
     getVideos();
@@ -61,20 +64,23 @@ const YouTubeHome = () => {
   };
 
   return (
-    <div className="container flex-1  ml-auto p-4 ">
-      {loading ? (
-        <div className="flex justify-center items-center h-screen">
-          Loading...
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 gap-4">
+    <div className=" flex content-center container ml-auto mr-14 mt-10 p-4 flex-col">
+     
+     {loading&& <div className="absolute left-0 right-0 top-0 z-20">
+        <Box sx = {{ width: "100%"}} >
+              <LinearProgress />
+        </Box>
+      </div>}
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 gap-8">
+         
           {videos.map((video) => (
             <div
               key={video.id}
-              className=" rounded-2xl w-full h-[290px] overflow-hidden cursor-pointer transition-transform transform hover:scale-105  bg-gray-50"
+              className=" rounded-2xl w-auto h-[300px] overflow-hidden cursor-pointer transition-transform transform hover:scale-105 bg-white"
               onClick={() => handleVideoClick(video.id)}
             >
-              <div className=" w-full h-[200px] rounded-3xl ">
+              <div className=" w-full h-[210px] rounded-3xl ">
                 <ReactPlayer
                   
                   url={video.url}
@@ -86,13 +92,12 @@ const YouTubeHome = () => {
               </div>
               <div className="p-4">
                 <h2 className="text-md font-medium line-clamp-2">{video.title}</h2>
-                <p className="text-gray-700 text-[10px] mb-1">{video.author}</p>
+                <p className="text-gray-700 text-[12px] mb-1">{video.author}</p>
                 {/* <p className="text-gray-700 text-sm">{video.description}</p> */}
               </div>
             </div>
           ))}
         </div>
-      )}
     </div>
   );
 };
